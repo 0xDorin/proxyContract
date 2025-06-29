@@ -19,37 +19,20 @@ contract DeployScript is Script {
     address public deployer;
     
     function run() external {
-        
-        // Give gas money to actual deployer (EOA)
-        
-        // Start broadcasting transactions
         vm.startBroadcast();
         deployer = msg.sender;
-        console.log("=== Deploying contracts with Create2 ===");
+        console.log("=== Deploying contracts ===");
         console.log("Deployer:", msg.sender);
-        console.log("Deployer balance:", address(msg.sender).balance);
         
         // Deploy contracts using Create2
         deployMockContracts();
         
-        // Increase nonce by 1 in the middle of deployment
-        console.log("\n--- Increasing nonce by 1 ---");
-        console.log("Current nonce:", vm.getNonce(msg.sender));
-        uint64 currentNonce = vm.getNonce(msg.sender);
-        vm.setNonce(msg.sender, currentNonce + 1);
-        console.log("Nonce increased to:", vm.getNonce(msg.sender));
-        
         deployProxy();
-        
-        // Setup proxy with MockupNad as initial implementation
         setupProxy();
-        
-        // Test deployments
         testDeployments();
         
         vm.stopBroadcast();
         
-        // Print final addresses
         printAddresses();
     }
     
@@ -116,10 +99,7 @@ contract DeployScript is Script {
         console.log("Expected Proxy address:", proxyAddress);
         
         // Deploy Proxy
-        console.log("  Deploying Proxy with CREATE2...");
         Proxy proxy = new Proxy{salt: PROXY_SALT}(msg.sender);
-        
-        console.log("  Debug Info AFTER deployment:");
         console.log("  Proxy deployed at:", address(proxy));
         console.log("  Proxy admin:", proxy.getAdmin());
         console.log("  msg.sender (should be EOA):", msg.sender);
@@ -138,33 +118,23 @@ contract DeployScript is Script {
         console.log("\n--- Setting up Proxy ---");
         
         Proxy proxy = Proxy(proxyAddress);
-        
-        // Set MockupNad as initial implementation
         bool success = proxy.setImplementation(mockupNadAddress);
         require(success, "Failed to set implementation");
-        
-        console.log("Set MockupNad as implementation");
-        console.log("Current implementation:", proxy.getImplementation());
+        console.log("Implementation set to:", proxy.getImplementation());
     }
     
     function testDeployments() internal {
         console.log("\n--- Testing Deployments ---");
         
-        Proxy proxy = Proxy(proxyAddress);
+        // Type cast proxy to MockupNad and call functions directly
+        MockupNad mockupNadProxy = MockupNad(proxyAddress);
         
-        // Test function call through proxy
-        bytes memory callData = abi.encodeWithSignature("nadFunction(uint256)", 42);
-        (bool success, bytes memory returnData) = address(proxy).call(callData);
-        
-        require(success, "Test call failed");
-        uint256 result = abi.decode(returnData, (uint256));
+        // Test nadFunction
+        uint256 result = mockupNadProxy.nadFunction(42);
         console.log("Test call successful, result:", result);
         
         // Check storage was updated
-        bytes memory getValueCallData = abi.encodeWithSignature("nadValue()");
-        (bool getSuccess, bytes memory getValue) = address(proxy).call(getValueCallData);
-        require(getSuccess, "Get value failed");
-        uint256 storedValue = abi.decode(getValue, (uint256));
+        uint256 storedValue = mockupNadProxy.nadValue();
         console.log("Stored value:", storedValue);
     }
     
