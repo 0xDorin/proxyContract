@@ -20,10 +20,10 @@ contract ProxyBasicTest is Test {
     function setUp() public {
         vm.startPrank(admin);
         
-        // Deploy contracts
-        proxy = new Proxy();
-        mockupNad = new MockupNad();
-        mockupAnother = new MockupAnother();
+        // Deploy contracts with required constructor parameters
+        proxy = new Proxy(admin);
+        mockupNad = new MockupNad(admin);
+        mockupAnother = new MockupAnother(admin);
         
         vm.stopPrank();
     }

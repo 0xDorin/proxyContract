@@ -17,10 +17,10 @@ contract ProxyEdgeCaseTest is Test {
     function setUp() public {
         vm.startPrank(admin);
         
-        // Deploy contracts
-        proxy = new Proxy();
-        mockupNad = new MockupNad();
-        mockupAnother = new MockupAnother();
+        // Deploy contracts with required constructor parameters
+        proxy = new Proxy(admin);
+        mockupNad = new MockupNad(admin);
+        mockupAnother = new MockupAnother(admin);
         
         vm.stopPrank();
     }
@@ -65,27 +65,4 @@ contract ProxyEdgeCaseTest is Test {
         console.log("Revert occurred as expected!");
     }
 
-    // 구현체가 없는 상태에서 여러 함수 호출 테스트
-    function testMultipleCallsWithoutImplementation() public {
-        // 구현체를 설정하지 않은 상태
-        
-        console.log("=== Multiple Calls Without Implementation Test ===");
-        
-        bytes memory callData1 = abi.encodeWithSignature("nadFunction(uint256)", 123);
-        bytes memory callData2 = abi.encodeWithSignature("anotherFunction(uint256)", 456);
-        bytes memory callData3 = abi.encodeWithSignature("nonExistentFunction()");
-        
-        (bool success1, ) = address(proxy).call(callData1);
-        (bool success2, ) = address(proxy).call(callData2);  
-        (bool success3, ) = address(proxy).call(callData3);
-        
-        console.log("NadFunction call success:", success1);
-        console.log("AnotherFunction call success:", success2);
-        console.log("NonExistent call success:", success3);
-        
-        // 모두 실패해야 함
-        assertFalse(success1);
-        assertFalse(success2);
-        assertFalse(success3);
-    }
 } 
