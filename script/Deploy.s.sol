@@ -115,12 +115,25 @@ contract DeployScript is Script {
     }
     
     function setupProxy() internal {
-        console.log("\n--- Setting up Proxy ---");
+        console.log("\n--- Setting up Proxy with upgradeAndCall ---");
         
         Proxy proxy = Proxy(proxyAddress);
-        bool success = proxy.setImplementation(mockupNadAddress);
-        require(success, "Failed to set implementation");
+        
+        // Initialize 함수 호출을 위한 calldata 준비
+        bytes memory initCallData = abi.encodeWithSignature("initialize(address)", deployer);
+        
+        // upgradeAndCall을 사용하여 implementation 설정과 동시에 initialize 호출
+        bool success = proxy.upgradeAndCall(mockupNadAddress, initCallData);
+        require(success, "Failed to upgrade and initialize");
+        
         console.log("Implementation set to:", proxy.getImplementation());
+        console.log("MockupNad initialized with owner:", deployer);
+        
+        // Owner가 제대로 설정되었는지 확인
+        MockupNad mockupNadProxy = MockupNad(proxyAddress);
+        address owner = mockupNadProxy.owner();
+        console.log("MockupNad owner through proxy:", owner);
+        require(owner == deployer, "Owner not set correctly");
     }
     
     function testDeployments() internal {
@@ -129,13 +142,22 @@ contract DeployScript is Script {
         // Type cast proxy to MockupNad and call functions directly
         MockupNad mockupNadProxy = MockupNad(proxyAddress);
         
-        // Test nadFunction
-        uint256 result = mockupNadProxy.nadFunction(42);
-        console.log("Test call successful, result:", result);
+        // Test regular nadFunction
+        uint256 result1 = mockupNadProxy.nadFunction(42);
+        console.log("nadFunction call successful, result:", result1);
+        
+        // Test owner-only nadFunctionOwner (should work since deployer is owner)
+        uint256 result2 = mockupNadProxy.nadFunctionOwner(100);
+        console.log("nadFunctionOwner call successful, result:", result2);
         
         // Check storage was updated
         uint256 storedValue = mockupNadProxy.nadValue();
-        console.log("Stored value:", storedValue);
+        console.log("Final stored value:", storedValue);
+        
+        // Verify owner
+        address owner = mockupNadProxy.owner();
+        console.log("Verified owner:", owner);
+        require(owner == deployer, "Owner verification failed");
     }
     
     function printAddresses() internal view {

@@ -11,8 +11,8 @@ contract MockupAnother is Initializable, Ownable {
         _transferOwnership(owner);
     }
 
-    function initialize(uint256 _chainId) initializable public {
-        _transferOwnership(_msgSender());
+    function initialize(address owner) initializable public {
+        _transferOwnership(owner);
     }
     
     event AnotherFunctionCalled(uint256 input, uint256 result);
