@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 import { AbstractProxy } from './AbstractProxy.sol';
 import { ProxyStorage } from './ProxyStorage.sol';
 import { TransferHelper } from '../utils/TransferHelper.sol';
+import {console} from 'forge-std/console.sol';
 
 contract Proxy is AbstractProxy {
 
@@ -20,6 +21,7 @@ contract Proxy is AbstractProxy {
 
     constructor(address owner) {
         ProxyStorage.load().admin = owner;
+        console.log("Proxy constructor", msg.sender);
     }
 
     modifier onlyAdmin() {

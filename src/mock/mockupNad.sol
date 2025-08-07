@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Initializable} from '../proxy/Initializable.sol';
 import {Ownable} from '../utils/Ownable.sol';
+import {console} from 'forge-std/console.sol';
 
 contract MockupNad is Initializable, Ownable {
     uint256 public nadValue;
@@ -19,6 +20,7 @@ contract MockupNad is Initializable, Ownable {
     
     function nadFunction(uint256 _input) public returns (uint256) {
         nadValue = _input + 100;
+        console.log("msg.sender", msg.sender);
         emit NadFunctionCalled(_input, nadValue);
         return nadValue;
     }
